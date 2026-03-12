@@ -29,11 +29,11 @@ from myhdl import block, always_comb, Signal, instances
 
 @block
 def fullAdder(a, b, c, soma, carry):
-
     s = [Signal(bool(0)) for i in range(3)]
+    haList = [None for i in range(2)]  # (1)
 
-    ha1 = halfAdder(a, b, s[0], s[1])
-    ha2 = halfAdder(s[0], c, soma, s[2])
+    haList[0] = halfAdder(a, b, s[0], s[1]) 
+    haList[1] = halfAdder(c, s[0], soma, s[2])
 
     @always_comb
     def comb():
@@ -46,7 +46,7 @@ from myhdl import block, Signal, instances
 
 @block
 def adder2bits(x, y, soma, carry):
-    
+
     carry_intermediario = Signal(bool(0))
 
     # Soma do bit menos significativo
