@@ -26,7 +26,8 @@ def halfAdder(a, b, soma, carry):
     """
     @always_comb
     def comb():
-        pass
+        soma.next = a ^ b
+        carry.next = a & b
 
     return instances()
 
@@ -44,7 +45,8 @@ def fullAdder(a, b, c, soma, carry):
     """
     @always_comb
     def comb():
-        pass
+        soma.next = a ^ b ^ c
+        carry.next = (a & b) | (a & c) | (b & c)
 
     return instances()
 
