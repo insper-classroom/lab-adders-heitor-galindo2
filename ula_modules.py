@@ -29,15 +29,15 @@ from myhdl import block, always_comb, Signal, instances
 
 @block
 def fullAdder(a, b, c, soma, carry):
-    s = [Signal(bool(0)) for i in range(3)]
-    haList = [None for i in range(2)]  # (1)
 
-    haList[0] = halfAdder(a, b, s[0], s[1]) 
-    haList[1] = halfAdder(c, s[0], soma, s[2])
+    s = [Signal(bool(0)) for i in range(3)]
+
+    ha1 = halfAdder(a, b, s[0], s[1])
+    ha2 = halfAdder(s[0], c, soma, s[2])
 
     @always_comb
     def comb():
-        carry.next = s[1] | s[2]
+        carry.next = s[1] or s[2]
 
     return instances()
 
@@ -49,7 +49,6 @@ def adder2bits(x, y, soma, carry):
 
     carry_intermediario = Signal(bool(0))
 
-    # Soma do bit menos significativo
     ha = halfAdder(
         x[0],
         y[0],
@@ -57,7 +56,6 @@ def adder2bits(x, y, soma, carry):
         carry_intermediario
     )
 
-    # Soma do bit mais significativo
     fa = fullAdder(
         x[1],
         y[1],
@@ -71,35 +69,32 @@ def adder2bits(x, y, soma, carry):
 
 @block
 def adder(x, y, soma, carry):
-    """Somador generico para vetores de mesmo tamanho.
 
-    Implementacao esperada por ripple-carry (encadeamento de carries)
-    usando celulas de full adder.
+    n = len(x)
 
-    Args:
-        x: Vetor de entrada.
-        y: Vetor de entrada.
-        soma: Vetor de saida com mesma largura de x/y.
-        carry: Carry de saida mais significativo.
-    """
+    faList = [None for i in range(n)]
+    c = [Signal(bool(0)) for i in range(n+1)]
+
+    for i in range(n):
+        faList[i] = fullAdder(x[i], y[i], c[i], soma[i], c[i+1])
+
+    @always_comb
+    def comb():
+        carry.next = c[n]
+
     return instances()
 
 
 @block
 def addervb(x, y, soma, carry):
-    """Somador vetorial em estilo comportamental.
 
-    Versao combinacional que pode usar operacoes aritmeticas diretas
-    sobre os vetores para gerar soma e carry.
-
-    Args:
-        x: Vetor de entrada.
-        y: Vetor de entrada.
-        soma: Vetor de saida.
-        carry: Carry de saida.
-    """
     @always_comb
     def comb():
-        pass
+        resultado = x + y
 
+        n = len(soma)
+
+        soma.next = resultado & ((1 << n) - 1)
+        carry.next = resultado >> n
+    
     return instances()
